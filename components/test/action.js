@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/rest';
+import { Octokit } from "@octokit/rest";
 
 export default {
   name: "Action Demo",
@@ -9,21 +9,21 @@ export default {
   props: {
     github: {
       type: "app",
-      app: "github"
-    }
+      app: "github",
+    },
   },
   async run({ $ }) {
     const octokit = new Octokit({
-      auth: this.github.$auth.oauth_access_token
+      auth: this.github.$auth.oauth_access_token,
     });
 
-    const { data } = await octokit.repos.get( {
-      owner: `pipedreamhq`,
-      repo: `pipedream`
+    const { data } = await octokit.repos.get({
+      owner: "pipedreamhq",
+      repo: "pipedream",
     });
 
     $.export("$summary", `Successfully fetched info for \`${data.full_name}\``);
 
     return data;
   },
-}
+};
