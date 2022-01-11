@@ -1,24 +1,34 @@
 import coda from "../../coda.app.mjs";
 
 export default {
-  key: "coda_list-docs",
+  key: "coda-list-docs",
   name: "List Docs",
-  description: "Returns a list of Coda docs accessible by the user. These are returned in the same order as on the docs page: reverse chronological by the latest event relevant to the user (last viewed, edited, or shared).",
-  version: "0.0.26",
+  description: "Returns a list of docs accessible by the user. These are returned in the same order as on the docs page: reverse chronological by the latest event relevant to the user (last viewed, edited, or shared)",
+  version: "0.0.1",
   type: "action",
   props: {
     coda,
-    isOwner: {
+    docId: {
       propDefinition: [
         coda,
-        "isOwner",
+        "docId",
+        (c) => c,
       ],
+      description: "Show only docs copied from the specified doc ID",
+      optional: true,
     },
-    isPublished: {
+    workspaceId: {
+      type: "string",
+      label: "Workspace ID",
+      description: "Show only docs belonging to the given workspace",
+      optional: true,
+    },
+    folderId: {
       propDefinition: [
         coda,
-        "isPublished",
+        "folderId",
       ],
+      description: "Show only docs belonging to the given folder",
     },
     query: {
       propDefinition: [
@@ -26,38 +36,29 @@ export default {
         "query",
       ],
     },
-    sourceDoc: {
-      propDefinition: [
-        coda,
-        "sourceDoc",
-        (c) => c,
-      ],
-      description: "Show only docs copied from the specified doc ID.",
+    isOwner: {
+      type: "boolean",
+      label: "Is Owner Docs",
+      description: "Show only docs owned by the user",
+      optional: true,
+    },
+    isPublished: {
+      type: "boolean",
+      label: "Is Published Docs",
+      description: "Show only published docs",
+      optional: true,
     },
     isStarred: {
-      propDefinition: [
-        coda,
-        "isStarred",
-      ],
+      type: "boolean",
+      label: "Is Starred Docs",
+      description: "If true, returns docs that are starred. If false, returns docs that are not starred",
+      optional: true,
     },
     inGallery: {
-      propDefinition: [
-        coda,
-        "inGallery",
-      ],
-    },
-    workspaceId: {
-      propDefinition: [
-        coda,
-        "workspaceId",
-      ],
-    },
-    folderId: {
-      propDefinition: [
-        coda,
-        "folderId",
-      ],
-      description: "Show only docs belonging to the given folder.",
+      type: "boolean",
+      label: "In Gallery Docs",
+      description: "Show only docs visible within the gallery",
+      optional: true,
     },
     limit: {
       propDefinition: [
@@ -71,47 +72,35 @@ export default {
         "pageToken",
       ],
     },
-    paginate: {
-      propDefinition: [
-        coda,
-        "paginate",
-      ],
-    },
   },
-  async run() {
-    var params = {
-      isOwner: this.isOwner,
-      isPublished: this.isPublished,
-      query: this.query,
-      sourceDoc: this.sourceDoc,
-      isStarred: this.isStarred,
-      inGallery: this.inGallery,
+  async run({ $ }) {
+    let params = {
+      sourceDoc: this.docId,
       workspaceId: this.workspaceId,
       folderId: this.folderId,
+      query: this.query,
+      isOwner: this.isOwner,
+      isPublished: this.isPublished,
+      isStarred: this.isStarred,
+      inGallery: this.inGallery,
       limit: this.limit,
       pageToken: this.pageToken,
     };
 
-    var result = await this.coda.listDocs(params);
+    let items = [];
+    let response;
+    do {
+      response = await this.coda.listDocs(params);
+      items.push(...response.items);
+      params.pageToken = response.nextPageToken;
+    } while (params.pageToken && items.length < this.limit);
 
-    if (!this.paginate) {
-      return {
-        items: result.items,
-      };
-    }
+    if (items.length > this.limit) items.length = this.limit;
 
-    var docList = result.items;
-    while (result.nextPageToken) {
-      params["pageToken"] = result.nextPageToken;
-      result = await this.coda.listDocs(params);
-      docList = [
-        ...docList,
-        ...result.items,
-      ];
-    }
+    $.export("$summary", `Retrieved ${items.length} doc(s)`);
 
     return {
-      items: docList,
+      items,
     };
   },
 };

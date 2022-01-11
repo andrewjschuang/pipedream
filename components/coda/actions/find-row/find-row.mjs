@@ -1,22 +1,19 @@
 import coda from "../../coda.app.mjs";
 
 export default {
-  key: "coda_find-row",
+  key: "coda-find-row",
   name: "Find Row",
-  description: "Searches for a Coda row in the selected table using a column match search",
-  version: "0.0.2",
+  description: "Searches for a row in the selected table using a column match search",
+  version: "0.0.1",
   type: "action",
   props: {
     coda,
     docId: {
       propDefinition: [
         coda,
-        "sourceDoc",
+        "docId",
         (c) => c,
       ],
-      label: "Doc ID",
-      description: "ID of the Doc",
-      optional: false,
     },
     tableId: {
       propDefinition: [
@@ -27,23 +24,42 @@ export default {
         }),
       ],
     },
+    columnId: {
+      propDefinition: [
+        coda,
+        "columnId",
+        (c) => ({
+          docId: c.docId,
+          tableId: c.tableId,
+        }),
+      ],
+    },
     query: {
       propDefinition: [
         coda,
         "query",
       ],
-      description: "Example: `query=c-tuVwxYz:\"Apple\"`. Query used to filter returned rows, specified as <column_id_or_name>:<value>. If you'd like to use a column name instead of an ID, you must quote it (e.g., \"My Column\":123). Also note that value is a JSON value; if you'd like to use a string, you must surround it in quotes (e.g., \"groceries\").",
+      description: `Query used to filter returned rows, specified as \`<columnId>:"<value>"\`.
+        Example: \`query=c-tuVwxYz:"Apple"\`.
+        More information at [Coda API](https://coda.io/developers/apis/v1#operation/listRows)`,
     },
     sortBy: {
       propDefinition: [
         coda,
         "sortBy",
       ],
-      description: "Specifies the sort order of the rows returned. If left unspecified, rows are returned by creation time ascending. \"UpdatedAt\" sort ordering is the order of rows based upon when they were last updated. This does not include updates to calculated values. \"Natural\" sort ordering is the order that the rows appear in the table view in the application. This ordering is only meaningfully defined for rows that are visible (unfiltered). Because of this, using this sort order will imply visibleOnly=true, that is, to only return visible rows. If you pass sortBy=natural and visibleOnly=false explicitly, this will result in a Bad Request error as this condition cannot be satisfied.",
+      description: `Specifies the sort order of the rows returned. If left unspecified, rows are returned by creation time ascending.
+        More information at [Coda API](https://coda.io/developers/apis/v1#operation/listRows)`,
       options: [
         "createdAt",
         "natural",
         "updatedAt",
+      ],
+    },
+    visibleOnly: {
+      propDefinition: [
+        coda,
+        "visibleOnly",
       ],
     },
     useColumnNames: {
@@ -51,23 +67,17 @@ export default {
       label: "Use Column Names",
       description: "Use column names instead of column IDs in the returned output",
       optional: true,
-      default: false,
     },
     valueFormat: {
       type: "string",
       label: "Value Format",
-      description: "The format that cell values are returned as",
+      description: `The format that individual cell values are returned as.
+        More information at [Coda API](https://coda.io/developers/apis/v1#operation/listRows)`,
       optional: true,
       options: [
         "simple",
         "simpleWithArrays",
         "rich",
-      ],
-    },
-    visibleOnly: {
-      propDefinition: [
-        coda,
-        "visibleOnly",
       ],
     },
     limit: {
@@ -85,25 +95,33 @@ export default {
     syncToken: {
       type: "string",
       label: "Sync Token",
-      description: "An opaque token returned from a previous call that can be used to return results that are relevant to the query since the call where the syncToken was generated.",
+      description: "An opaque token returned from a previous call that can be used to return results that are relevant to the query since the call where the syncToken was generated",
       optional: true,
     },
   },
-  async run() {
+  async run({ $ }) {
     let params = {
       query: this.query,
       sortBy: this.sortBy,
+      visibleOnly: this.visibleOnly,
       useColumnNames: this.useColumnNames,
       valueFormat: this.valueFormat,
-      visibleOnly: this.visibleOnly,
       limit: this.limit,
       pageToken: this.pageToken,
       syncToken: this.syncToken,
     };
-    return await this.coda.findRow(
+
+    let response = await this.coda.findRow(
       this.docId,
       this.tableId,
       params,
     );
+
+    if (response.items.length > 0) {
+      $.export("$summary", `Found ${response.items.length} rows`);
+    } else {
+      $.export("$summary", `No rows found with the search query: ${this.query}`);
+    }
+    return response;
   },
 };

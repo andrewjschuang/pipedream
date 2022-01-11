@@ -1,22 +1,20 @@
 import coda from "../../coda.app.mjs";
 
 export default {
-  key: "coda_create-rows",
+  key: "coda-create-rows",
   name: "Create Rows",
-  description: "Creates rows in a selected table",
-  version: "0.0.4",
+  description: `Inserts rows in a selected table.
+    More information at [Coda API](https://coda.io/developers/apis/v1#operation/upsertRows)`,
+  version: "0.0.1",
   type: "action",
   props: {
     coda,
     docId: {
       propDefinition: [
         coda,
-        "sourceDoc",
+        "docId",
         (c) => c,
       ],
-      label: "Doc ID",
-      description: "ID of the Doc",
-      optional: false,
     },
     tableId: {
       propDefinition: [
@@ -27,32 +25,46 @@ export default {
         }),
       ],
     },
-    rows: {
-      type: "string",
-      label: "Rows to create",
-      description: "Array of rows objects to create. Example: `[{cells:[{column:\"<columnId>\",value:\"<value>\"}]}]`. More information at [Coda API](https://coda.io/developers/apis/v1#operation/upsertRows)",
+    columnId: {
+      propDefinition: [
+        coda,
+        "columnId",
+        (c) => ({
+          docId: c.docId,
+          tableId: c.tableId,
+        }),
+      ],
     },
     disableParsing: {
-      type: "boolean",
-      label: "Disable Parsing",
-      description: "If true, the API will not attempt to parse the data in any way",
-      optional: true,
+      propDefinition: [
+        coda,
+        "disableParsing",
+      ],
+    },
+    rows: {
+      propDefinition: [
+        coda,
+        "rows",
+      ],
     },
   },
-  async run() {
-    var data = {
+  async run({ $ }) {
+    let data = {
       rows: JSON.parse(this.rows),
     };
 
-    var params = {
+    let params = {
       disableParsing: this.disableParsing,
     };
 
-    return await this.coda.createRows(
+    let response = await this.coda.createRows(
       this.docId,
       this.tableId,
       data,
       params,
     );
+
+    $.export("$summary", "Created row(s) successfully");
+    return response;
   },
 };

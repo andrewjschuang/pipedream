@@ -1,10 +1,10 @@
 import coda from "../../coda.app.mjs";
 
 export default {
-  key: "coda_create-doc",
+  key: "coda-create-doc",
   name: "Create Doc",
-  description: "Creates a new Coda doc",
-  version: "0.0.21",
+  description: "Creates a new doc",
+  version: "0.0.1",
   type: "action",
   props: {
     coda,
@@ -13,20 +13,23 @@ export default {
         coda,
         "title",
       ],
-      description: "Title of the new doc. Defaults to 'Untitled'.",
     },
     folderId: {
       propDefinition: [
         coda,
         "folderId",
       ],
-      description: "The ID of the folder within which to create this doc. Defaults to your \"My docs\" folder in the oldest workspace you joined; this is subject to change. You can get this ID by opening the folder in the docs list on your computer and grabbing the folderId query parameter.",
+      description: "The ID of the folder within which to create this doc",
     },
   },
-  async run() {
-    return await this.coda.createDoc(
-      this.title,
-      this.folderId,
-    );
+  async run({ $ }) {
+    let data = {
+      title: this.title,
+      folderId: this.folderId,
+    };
+
+    let response = await this.coda.createDoc(data);
+    $.export("$summary", `Created "${response.name}" doc in folderId: "${response.folderId}" and workspaceId: "${response.workspaceId}"`);
+    return response;
   },
 };

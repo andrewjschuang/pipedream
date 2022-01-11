@@ -1,22 +1,19 @@
 import coda from "../../coda.app.mjs";
 
 export default {
-  key: "coda_list-columns",
+  key: "coda-list-columns",
   name: "List Columns",
   description: "Lists columns in a table",
-  version: "0.0.10",
+  version: "0.0.1",
   type: "action",
   props: {
     coda,
     docId: {
       propDefinition: [
         coda,
-        "sourceDoc",
+        "docId",
         (c) => c,
       ],
-      label: "Doc ID",
-      description: "ID of the Doc",
-      optional: false,
     },
     tableId: {
       propDefinition: [
@@ -25,6 +22,12 @@ export default {
         (c) => ({
           docId: c.docId,
         }),
+      ],
+    },
+    visibleOnly: {
+      propDefinition: [
+        coda,
+        "visibleOnly",
       ],
     },
     limit: {
@@ -39,24 +42,21 @@ export default {
         "pageToken",
       ],
     },
-    visibleOnly: {
-      propDefinition: [
-        coda,
-        "visibleOnly",
-      ],
-      description: "If true, returns only visible columns for the table",
-    },
   },
-  async run() {
-    var params = {
+  async run({ $ }) {
+    let params = {
+      visibleOnly: this.visibleOnly,
       limit: this.limit,
       pageToken: this.pageToken,
-      visibleOnly: this.visibleOnly,
     };
-    return await this.coda.listColumns(
+
+    let response = await this.coda.listColumns(
       this.docId,
       this.tableId,
       params,
     );
+
+    $.export("$summary", `Retrieved ${response.items.length} column(s)`);
+    return response;
   },
 };

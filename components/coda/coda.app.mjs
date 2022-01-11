@@ -1,4 +1,4 @@
-import axios from "axios";
+import { axios } from "@pipedream/platform";
 
 export default {
   type: "app",
@@ -6,114 +6,113 @@ export default {
   propDefinitions: {
     title: {
       type: "string",
-      label: "Doc Title",
-      description: "Title of the doc",
+      label: "Title",
+      description: "Title of the doc. Defaults to `\"Untitled\"`",
       optional: true,
+    },
+    docId: {
+      type: "string",
+      label: "Doc ID",
+      description: `ID of the doc
+        Options are displayed as \`{ "<docId>" : "<docValue>" }\``,
+      async options () {
+        return this._makeOptionsResponse(
+          (await this.listDocs()).items,
+        );
+      },
     },
     folderId: {
       type: "string",
       label: "Folder ID",
-      description: "The ID of the folder",
+      description: "ID of the folder",
       optional: true,
-    },
-    sourceDoc: {
-      type: "string",
-      label: "Source Doc ID",
-      description: "A doc ID from which to create a copy.",
-      optional: true,
-      async options () {
-        return this._getKeyValuePair(
-          (await this.listDocs()).items
-        );
-      },
     },
     tableId: {
       type: "string",
       label: "Table ID",
-      description: "ID or name of the table",
+      description: `ID of the table
+        Options are displayed as \`{ "<tableId>" : "<tableValue>" }\``,
       async options({ docId }) {
-        return this._getKeyValuePair(
-          (await this.listTables(docId)).items
+        return this._makeOptionsResponse(
+          (await this.listTables(docId)).items,
         );
       },
     },
     rowId: {
       type: "string",
       label: "Row ID",
-      description: "ID of the row",
-      async options({ docId, tableId }) {
+      description: `ID of the row
+        Options are displayed as \`<rowNumber>: { "<rowId>" : "<rowValue>" }\``,
+      async options({
+        docId, tableId,
+      }) {
         let counter = 0;
-        return (await this.findRow(docId, tableId, { sortBy: "natural" })).items.map(
+        return this._makeOptionsResponse(
+          (await this.findRow(docId, tableId, {
+            sortBy: "natural",
+          })).items,
+        ).map(
           (row) => ({
-            label: `Row ${counter++}: id[${row.id}] value[${row.name}]`,
-            value: row.id,
-          })
+            label: `${counter++}: ${row.label}`,
+            value: row.value,
+          }),
         );
       },
     },
     columnId: {
       type: "string",
       label: "Column ID",
-      description: "ID or name of the column",
-      async options({ docId, tableId }) {
-        return (await this.listColumns(docId, tableId)).items.map(
-          (column) => ({
-            label: `id[${column.id}] value[${column.name}]`,
-            value: column.id,
-          })
+      description: `ID of the column
+        This prop is not used in the API call, it is a helper to find the \`columnId\` for the \`row\` object,
+        Options are displayed as \`{ "<columnId>" : "<columnValue>" }\``,
+      optional: true,
+      async options({
+        docId, tableId,
+      }) {
+        return this._makeOptionsResponse(
+          (await this.listColumns(docId, tableId)).items,
         );
       },
     },
     keyColumns: {
       type: "string[]",
       label: "Key of columns to be upserted",
-      description: "Optional column IDs, URLs, or names (fragile and discouraged), specifying columns to be used as upsert keys",
-      async options({ docId, tableId }) {
-        return (await this.listColumns(docId, tableId)).items.map(
-          (column) => ({
-            label: `id[${column.id}] value[${column.name}]`,
-            value: column.id,
-          })
+      description: `Optional column IDs, specifying columns to be used as upsert keys
+        Options are displayed as \`{ "<columnId>" : "<columnValue>" }\``,
+      async options({
+        docId, tableId,
+      }) {
+        return this._makeOptionsResponse(
+          (await this.listColumns(docId, tableId)).items,
         );
-      }
+      },
     },
-    isOwner: {
-      type: "boolean",
-      label: "Is Owner Docs",
-      description: "Show only docs owned by the user.",
-      optional: true,
-    },
-    isPublished: {
-      type: "boolean",
-      label: "Is Published Docs",
-      description: "Show only published docs.",
-      optional: true,
-      default: false,
+    rows: {
+      type: "string",
+      label: "Rows to create or upsert",
+      description: `List of rows to create or upsert.
+        Example: \`[{"cells":[{"column":"<columnId>","value":"<value>"}]}]\`.
+        More information at [Coda API](https://coda.io/developers/apis/v1#operation/upsertRows)`,
     },
     query: {
       type: "string",
       label: "Search Query",
-      description: "Search term used to filter down results.",
+      description: "Search term used to filter down results",
       optional: true,
     },
-    isStarred: {
-      type: "boolean",
-      label: "Is Starred Docs",
-      description: "If true, returns docs that are starred. If false, returns docs that are not starred.",
-      optional: true,
-      default: false,
-    },
-    inGallery: {
-      type: "boolean",
-      label: "In Gallery Docs",
-      description: "Show only docs visible within the gallery.",
-      optional: true,
-      default: false,
-    },
-    workspaceId: {
+    sortBy: {
       type: "string",
-      label: "Workspace ID",
-      description: "Show only docs belonging to the given workspace.",
+      label: "sortBy",
+      description: "Determines how to sort the given objects",
+      optional: true,
+      options: [
+        "name",
+      ],
+    },
+    disableParsing: {
+      type: "boolean",
+      label: "Disable Parsing",
+      description: "If true, the API will not attempt to parse the data in any way",
       optional: true,
     },
     visibleOnly: {
@@ -122,233 +121,175 @@ export default {
       description: "If true, returns only visible rows and columns for the table",
       optional: true,
     },
-    sortBy: {
-      type: "string",
-      label: "sortBy",
-      description: "Determines how to sort the given objects.",
-      optional: true,
-    },
     limit: {
       type: "integer",
       label: "Limit",
-      description: "Maximum number of results to return in this query.",
+      description: "Maximum number of results to return in this query",
+      optional: true,
       default: 25,
       min: 1,
       max: 50,
     },
-    disableParsing: {
-      type: "boolean",
-      label: "Disable Parsing",
-      description: "If true, the API will not attempt to parse the data in any way",
-      optional: true,
-    },
     pageToken: {
       type: "string",
       label: "Page Token",
-      description: "An opaque token used to fetch the next page of results.",
+      description: "An opaque token used to fetch the next page of results",
       optional: true,
-    },
-    paginate: {
-      type: "boolean",
-      label: "Auto-Paginate",
-      description: "By default, list all docs matching search results across all result pages. Set to `false` to limit results to the first page.",
-      optional: true,
-      default: true,
     },
   },
   methods: {
-    _getKeyValuePair(list) {
+    async _makeRequest(opts) {
+      if (!opts.headers) opts.headers = {};
+      opts.headers.Authorization = `Bearer ${this.$auth.api_token}`;
+      opts.headers["user-agent"] = "@PipedreamHQ/pipedream v0.1";
+      if (!opts.method) opts.method = "get";
+      const { path } = opts;
+      delete opts.path;
+      opts.url = `https://coda.io/apis/v1${path[0] === "/"
+        ? ""
+        : "/"}${path}`;
+      return await axios(this, opts);
+    },
+    _makeOptionsResponse(list) {
       return list.map(
         (e) => ({
-          label: e.name,
+          label: `{ "${e.id}" : "${e.name}" }`,
           value: e.id,
-        })
+        }),
       );
     },
-    _removeEmptyKeyValues(dict) {
-      Object.keys(dict).forEach((key) => (dict[key] === null
-        || dict[key] === undefined
-        || dict[key] === "")
-        && delete dict[key]);
-      return dict;
-    },
-    // this.$auth contains connected account data
-    authKeys() {
-      console.log(Object.keys(this.$auth));
-    },
     /**
-     * Creates a new Coda doc
-     *
-     * @param {string} title - Title of the new doc
-     * @param {string} folderId - The ID of the folder within to create this
-     * doc
-     * @param {string} [sourceDoc] - An optional doc ID from which to create a
-     * copy
-     * @returns {string} ID of the newly created doc
+     * Creates a new doc or copies a doc from a source docId
+     * @param {object} [data]
+     * @param {object} [data.title]
+     * @param {object} [data.folderId]
+     * @param {object} [data.sourceDoc]
+     * @return {object} Created or copied doc
      */
-    async createDoc(title, folderId, sourceDoc = "") {
-      const config = {
+    async createDoc(data = {}) {
+      let opts = {
         method: "post",
-        url: "https://coda.io/apis/v1/docs",
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        data: {
-          title,
-          folderId,
-          sourceDoc,
-        },
+        path: "/docs",
+        data,
       };
-      return (await axios(config)).data.id;
+      return await this._makeRequest(opts);
     },
     /**
-     * List Coda docs according to parameters
-     *
-     * @param {object} [params] - Optional Query Parameters
-     * @param {boolean} params.isOwner
-     * @param {boolean} params.isPublished
-     * @param {string} params.query
-     * @param {string} params.sourceDoc
-     * @param {boolean} params.isStarred
-     * @param {boolean} params.inGallery
-     * @param {string} params.workspaceId
-     * @param {string} params.folderId
-     * @param {int} params.limit
-     * @param {string} params.pageToken
-     *
-     * @returns {object[]} Array of listed Docs
+     * List docs according to query parameters
+     * @param {object}  [params]
+     * @param {string}  [params.docId]
+     * @param {string}  [params.workspaceId]
+     * @param {string}  [params.folderId]
+     * @param {string}  [params.query]
+     * @param {boolean} [params.isOwner]
+     * @param {boolean} [params.isPublished]
+     * @param {boolean} [params.isStarred]
+     * @param {boolean} [params.inGallery]
+     * @param {number}  [params.limit]
+     * @param {string}  [params.pageToken]
+     * @return {object[]} List of docs
      */
     async listDocs(params = {}) {
-      const config = {
-        method: "get",
-        url: "https://coda.io/apis/v1/docs",
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+      let opts = {
+        path: "/docs",
+        params,
       };
-      return (await axios(config)).data;
+      return await this._makeRequest(opts);
     },
     /**
-     * Returns a list of tables in a Coda doc according to parameters
-     * @param {object} [params] - Optional Query Parameters
-     * @param {int} params.limit
-     * @param {string} params.pageToken
-     * @param {string} params.sortBy
-     * @param {string} params.tableTypes
-     *
-     * @returns {object[]} Array of tables
+     * Lists tables in a doc according to parameters
+     * @param {object} [params]
+     * @param {string} [params.sortBy]
+     * @param {string} [params.tableTypes]
+     * @param {number} [params.limit]
+     * @param {string} [params.pageToken]
+     * @return {object[]} List of tables
      */
     async listTables(docId, params = {}) {
-      const config = {
-        method: "get",
-        url: `https://coda.io/apis/v1/docs/${docId}/tables`,
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+      let opts = {
+        path: `/docs/${docId}/tables`,
+        params,
       };
-      return (await axios(config)).data;
+      return await this._makeRequest(opts);
     },
     /**
-     * Searches for a Coda row in the selected table using a column match search
-     * @param {*} docId
-     * @param {*} tableId
-     * @param {object} [params] - Optional Query Parameters
-     * @param {string} [params.query]
-     * @param {string} [params.sortBy]
-     * @param {boolean} [params.useColumnNames]
-     * @param {string} [params.valueFormat]
+     * Searches for a row in the selected table using a column match search
+     * @param {string}  docId
+     * @param {string}  tableId
+     * @param {object}  [params]
+     * @param {string}  [params.query]
+     * @param {string}  [params.sortBy]
      * @param {boolean} [params.visibleOnly]
-     * @param {int} [params.limit]
-     * @param {string} [params.pageToken]
-     * @param {string} [params.syncToken]
-     * @returns {object[]} Array of rows
+     * @param {boolean} [params.useColumnNames]
+     * @param {string}  [params.valueFormat]
+     * @param {number}  [params.limit]
+     * @param {string}  [params.pageToken]
+     * @param {string}  [params.syncToken]
+     * @return {object[]} List of rows
      */
     async findRow(docId, tableId, params = {}) {
-      const config = {
-        method: "get",
-        url: `https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/rows`,
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+      let opts = {
+        path: `/docs/${docId}/tables/${tableId}/rows`,
+        params,
       };
-      return (await axios(config)).data;
+      return await this._makeRequest(opts);
     },
     /**
      * Returns a list of columns in a doc table.
-     *
      * @param {string} docId
      * @param {string} tableId
      * @param {object} [params]
-     * @param {object} params.limit
-     * @param {object} params.pageToken
-     * @param {object} params.visibleOnly
-     * @returns {object[]} Array of columns
+     * @param {object} [params.visibleOnly]
+     * @param {object} [params.limit]
+     * @param {object} [params.pageToken]
+     * @return {object[]} List of columns
      */
     async listColumns(docId, tableId, params = {}) {
-      const config = {
-        method: "get",
-        url: `https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/columns`,
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+      let opts = {
+        path: `/docs/${docId}/tables/${tableId}/columns`,
+        params,
       };
-      return (await axios(config)).data;
+      return await this._makeRequest(opts);
     },
     /**
-     * Inserts rows into a table, optionally updating existing rows if any upsert key columns are provided.
-     * This endpoint will always return a 202, so long as the doc and table exist and are accessible (and the update is
-     * structurally valid). Row inserts/upserts are generally processed within several seconds.
-     *
-     * @param {string} docId
-     * @param {string} tableId
-     * @param {object} data
-     * @param {object} data.rows
-     * @param {string[]} [data.keyColumns]
-     * @param {object} [params]
-     * @param {boolean} [params.disableParsing]
-     * @returns {object[]} Array of addedRows and requestId
+     * Inserts rows into a table, optionally updating existing rows using upsert key columns
+     * @param {string}    docId
+     * @param {string}    tableId
+     * @param {object}    data
+     * @param {object}    data.rows
+     * @param {string[]}  [data.keyColumns]
+     * @param {object}    [params]
+     * @param {boolean}   [params.disableParsing]
+     * @return {object[]} List of added rows and requestId
      */
     async createRows(docId, tableId, data, params = {}) {
-      const config = {
+      let opts = {
         method: "post",
-        url: `https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/rows`,
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+        path: `/docs/${docId}/tables/${tableId}/rows`,
+        params,
         data,
       };
-      return (await axios(config)).data;
+      return await this._makeRequest(opts);
     },
     /**
-     * Updates the specified row in the table. This endpoint will always return a 202, so long as the row exists and is
-     * accessible (and the update is structurally valid). Row updates are generally processed within several seconds.
-     * When updating using a name as opposed to an ID, an arbitrary row will be affected.
-     *
-     * @param {string} docId
-     * @param {string} tableId
-     * @param {string} rowId
-     * @param {object} data
-     * @param {object} data.row
-     * @param {object} [params]
+     * Updates the specified row in the table
+     * @param {string}  docId
+     * @param {string}  tableId
+     * @param {string}  rowId
+     * @param {object}  data
+     * @param {object}  data.row
+     * @param {object}  [params]
      * @param {boolean} [params.disableParsing]
-     * @returns {object[]} Updated row ID and requestId
+     * @return {object[]} Updated rowId and requestId
      */
     async updateRow(docId, tableId, rowId, data, params = {}) {
-      const config = {
+      let opts = {
         method: "put",
-        url: `https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/rows/${rowId}`,
-        headers: {
-          Authorization: `Bearer ${this.$auth.api_token}`,
-        },
-        params: this._removeEmptyKeyValues(params),
+        path: `/docs/${docId}/tables/${tableId}/rows/${rowId}`,
+        params,
         data,
       };
-      return (await axios(config)).data;
-    }
+      return await this._makeRequest(opts);
+    },
   },
 };
