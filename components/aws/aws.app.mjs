@@ -2,7 +2,7 @@ import axios from "axios"; // need axios response headers
 import AdmZip from "adm-zip";
 import dedent from "dedent";
 import constants from "./common/constants.mjs";
-import { clients } from "./common/clients.mjs";
+import clients from "./common/clients.mjs";
 import {
   regions,
   defaultRegion,
@@ -50,6 +50,8 @@ import {
   PutEventsCommand,
 } from "@aws-sdk/client-eventbridge";
 import {
+  CreateBucketCommand,
+  PutBucketPolicyCommand,
   ListBucketsCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
@@ -58,6 +60,7 @@ import {
   ListFunctionsCommand,
   CreateFunctionCommand,
 } from "@aws-sdk/client-lambda";
+import { GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 
 export default {
   type: "app",
@@ -387,8 +390,8 @@ export default {
       };
     },
     async getAWSAccountId(region) {
-      const { Account } = await this._getSTSClient(region).getCallerIdentity()
-        .promise();
+      const client = this.getAWSClient(clients.sts, region);
+      const { Account } = await client.send(new GetCallerIdentityCommand({}));
       return Account;
     },
     getAWSClient(clientType, region = defaultRegion) {
@@ -489,10 +492,8 @@ export default {
           LocationConstraint: region,
         };
       }
-      const { Location } = await this
-        ._getS3Client(region)
-        .createBucket(params)
-        .promise();
+      const client = this.getAWSClient(clients.s3, region);
+      const { Location } = await client.send(new CreateBucketCommand(params));
       console.log(Location);
       return {
         Location,
@@ -513,10 +514,8 @@ export default {
         Bucket: bucketName,
         Policy: policy,
       };
-      const putBucketPolicyResp = await this
-        ._getS3Client(region)
-        .putBucketPolicy(params)
-        .promise();
+      const client = this.getAWSClient(clients.s3, region);
+      const putBucketPolicyResp = await client.send(new PutBucketPolicyCommand(params));
       console.log(putBucketPolicyResp);
       return putBucketPolicyResp;
     },

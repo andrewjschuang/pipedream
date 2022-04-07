@@ -3,7 +3,7 @@ import {
   StartQueryCommand,
   GetQueryResultsCommand,
 } from "@aws-sdk/client-cloudwatch-logs";
-import { clients } from "../../common/clients.mjs";
+import clients from "../../common/clients.mjs";
 
 export default {
   key: "aws-new-records-returned-by-cloudwatch-logs-insights-query",

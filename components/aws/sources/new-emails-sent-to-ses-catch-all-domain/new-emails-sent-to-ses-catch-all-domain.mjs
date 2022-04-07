@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 import base from "../common/ses.mjs";
 import { toSingleLineString } from "../common/utils.mjs";
 import { MailParser } from "mailparser-mit";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 
 export default {
   ...base,
@@ -73,11 +74,10 @@ export default {
           bucketName: Bucket,
           objectKey: Key,
         } = message?.receipt?.action;
-        const { Body } = await this.aws._getS3Client(this.getRegion()).getObject({
+        const { Body } = await this._getS3Client().send(new GetObjectCommand({
           Bucket,
           Key,
-        })
-          .promise();
+        }));
         const parsed = await new Promise((resolve) => {
           const mailparser = new MailParser();
           mailparser.on("end", resolve);

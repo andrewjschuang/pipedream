@@ -3,7 +3,7 @@ import {
   generateRandomUniqueName,
   toSingleLineString,
 } from "../../common/utils.mjs";
-import { clients } from "../../common/clients.mjs";
+import clients from "../../common/clients.mjs";
 import {
   CreateStateMachineCommand,
   DeleteStateMachineCommand,
