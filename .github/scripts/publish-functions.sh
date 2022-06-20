@@ -46,7 +46,7 @@ unpublished_components() {
 call_pd_workflow() {
     curl -X POST \
         -d "type=$1" \
-        -d "pr_stuff=$2" \
+        -d "push=$2" \
         -d "skipped=${SKIPPED[*]}" \
         -d "errors=${ERRORS[*]}" \
         -d "unpublished=${UNPUBLISHED[*]}" \
