@@ -56,9 +56,10 @@ jobs:
           ENDPOINT: ${{ secrets.ENDPOINT }}
           ADDED_MODIFIED: ${{ steps.files.outputs.added_modified }}
           RENAMED: ${{ steps.files.outputs.renamed }}
-          PUSH: ${{ github.event }}
+          # PUSH: ${{ github.event }}
         shell: bash {0} # don't fast fail
         run: |
+            env
             .github/scripts/publish-components.sh
       - name: Remove pd cli config
         run: |
@@ -110,9 +111,10 @@ jobs:
         env:
           PD_API_KEY: ${{ secrets.PD_API_KEY }}
           ENDPOINT: ${{ secrets.ENDPOINT }}
-          PUSH: ${{ github.event }}
+          # PUSH: ${{ github.event }}
         shell: bash {0} # don't fast fail
         run: |
+            env
             .github/scripts/publish-components-ts.sh
       - name: Remove pd cli config
         run: |
