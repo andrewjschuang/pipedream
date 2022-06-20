@@ -14,4 +14,4 @@ done
 unpublished_components
 
 # curl with form
-call_pd_workflow "typescript"
+call_pd_workflow "typescript" "$PR_STUFF"

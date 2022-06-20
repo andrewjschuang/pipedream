@@ -110,6 +110,7 @@ on:
           env:
               PD_API_KEY: ${{ secrets.PD_API_KEY }}
               ENDPOINT: ${{ secrets.ENDPOINT }}
+              PR_STUFF: ${{ github.event.pull_request }}
           shell: bash {0} # don't fast fail
           run: |
              .github/scripts/publish-components-ts.sh
