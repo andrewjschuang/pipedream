@@ -46,6 +46,8 @@ unpublished_components() {
 call_pd_workflow() {
     curl -X POST \
         -d "type=$1" \
+        -d "event=$(cat "$GITHUB_EVENT_PATH")" \
+        -d "github=$(printenv | grep "GITHUB_*")" \
         -d "skipped=${SKIPPED[*]}" \
         -d "errors=${ERRORS[*]}" \
         -d "unpublished=${UNPUBLISHED[*]}" \
