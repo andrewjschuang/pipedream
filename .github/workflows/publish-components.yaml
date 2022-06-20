@@ -56,6 +56,7 @@ jobs:
           ENDPOINT: ${{ secrets.ENDPOINT }}
           ADDED_MODIFIED: ${{ steps.files.outputs.added_modified }}
           RENAMED: ${{ steps.files.outputs.renamed }}
+          PR_STUFF: ${{ github.event.pull_request }}
         shell: bash {0} # don't fast fail
         run: |
            .github/scripts/publish-components.sh
