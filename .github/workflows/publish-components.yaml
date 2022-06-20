@@ -1,10 +1,13 @@
 on:
-  push:
+  pull_request:
     branches:
       - master
+    types:
+      - closed
 
 jobs:
   publish-components:
+    if: github.event.pull_request.merged == true
     name: Publish Components to Pipedream Registry
     runs-on: ubuntu-latest
     steps:
