@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - checkpoint
+      - master
 
 jobs:
   publish-components:
