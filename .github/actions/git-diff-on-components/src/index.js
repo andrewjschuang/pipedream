@@ -15,6 +15,16 @@ const extensionsRegExp = new RegExp("\.[t|j|mj]s$");
 const baseCommit = core.getInput("base_commit");
 const headCommit = core.getInput("head_commit");
 const allFiles = JSON.parse(core.getInput("all_files"));
+// const baseCommit = "5d57218c";
+// const headCommit = "44f53c50";
+// const allFiles = [
+//   ".github/actions/git-diff-on-components/dist/index.js",
+//   ".github/actions/git-diff-on-components/dist/licenses.txt",
+//   ".github/actions/git-diff-on-components/src/index.js",
+//   "components/rss/actions/merge-rss-feeds/merge-rss-feeds.ts",
+//   "components/rss/sources/new-item-from-multiple-feeds/new-item-from-multiple-feeds.ts",
+//   "components/rss/app/rss.app.ts",
+// ];
 
 async function execCmd(...args) {
   let output = "";
@@ -91,10 +101,30 @@ async function getFilesContent(filePaths = []) {
   return Promise.all(contentFilesPromises);
 }
 
+function includesVersion(contents) {
+  return contents.includes("version:") || contents.includes("\"version\":");
+}
+
+function getPackageJsonFilePath(filePaths) {
+  if (Array.isArray(filePaths)) {
+    const packages = new Set();
+    for (const filePath of filePaths) {
+      packages.add(...getPackageJsonFilePath(filePath));
+    }
+    return Array.from(packages);
+  }
+
+  const base = filePaths.split("components/")[0];
+  const appName = filePaths.split("components/")[1].split("/")[0];
+  return [
+    `${base}components/${appName}/package.json`,
+  ];
+}
+
 async function getDiffsContent(filesContent = []) {
   const diffContentPromises =
     filesContent
-      .filter(({ contents }) => contents.includes("version:"))
+      .filter(({ contents }) => includesVersion(contents))
       .map(async ({ filePath }) => {
         return {
           filePath,
@@ -109,8 +139,8 @@ function getUnmodifiedComponents({ contents = [], uncommited } = {}) {
   return contents
     .filter(({ contents }) =>
       uncommited
-        ? contents.includes("version:")
-        : !contents.includes("version:"))
+        ? includesVersion(contents)
+        : !includesVersion(contents))
     .map(({ filePath }) => filePath);
 }
 
@@ -125,7 +155,7 @@ async function processFiles({ filePaths = [], uncommited } = {}) {
   return getUnmodifiedComponents({ contents: diffsContent });
 }
 
-async function deepReadDir (dirPath) {
+async function deepReadDir(dirPath) {
   return Promise.all(
     (await readdir(dirPath))
       .map(async (entity) => {
@@ -138,7 +168,7 @@ async function deepReadDir (dirPath) {
 }
 
 async function getAllFilePaths({ componentsPath, apps = [] } = {}) {
-  return Promise.all(apps.map((app) => deepReadDir(join(componentsPath ,app))))
+  return Promise.all(apps.map((app) => deepReadDir(join(componentsPath, app))))
     .then(reduceResult);
 }
 
@@ -248,6 +278,7 @@ function getFilesToBeCheckByDependency(componentsDependencies) {
 function getComponentsThatNeedToBeModified({ filesToBeCheckedByDependency, otherFiles }) {
   return Object.entries(filesToBeCheckedByDependency)
     .reduce(async (reduction, [filePath, filesToBeChecked]) => {
+      filesToBeChecked.push(...getPackageJsonFilePath(filePath));
       const found = otherFiles.find((path) => filePath.includes(path));
       if (found) {
         const newFilePaths = await processFiles({ filePaths: filesToBeChecked, uncommited: true });
@@ -281,7 +312,7 @@ async function checkVersionModification(componentsPendingForGitDiff) {
   );
   return output.filter(({ contents }) =>
     !contents
-    || (contents?.length && !contents.includes("version:")));
+    || (contents?.length && !includesVersion(contents)));
 }
 
 function getComponentFilePath(filePath) {
@@ -293,6 +324,7 @@ async function run() {
   let componentsDiffContents = [];
   const filteredFilePaths = getFilteredFilePaths({ allFilePaths: allFiles });
   const existingFilePaths = await getExistingFilePaths(filteredFilePaths);
+  existingFilePaths.push(...getPackageJsonFilePath(existingFilePaths));
   const componentsThatDidNotModifyVersion = await processFiles({ filePaths: existingFilePaths });
   const filteredWithOtherFilePaths = getFilteredFilePaths({ allFilePaths: allFiles, allowOtherFiles: true });
   const otherFiles = difference(filteredWithOtherFilePaths, existingFilePaths);
