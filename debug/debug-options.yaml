@@ -1,0 +1,82 @@
+# ----- Run a whole workflow
+runType: workflow
+steps:
+  trigger:
+    event:
+      repo: PipedreamHQ/pipedream
+
+# ----- Run a specific action
+# runType: action
+# appName: github
+# key: get-repository
+# props:
+#   repoFullname: PipedreamHQ/pipedream
+
+# ----- Run a specific source
+# runType: source
+# appName: github
+# key: new-commit
+# props:
+#   repoFullname: PipedreamHQ/pipedream
+#   branch:
+#     __lv:
+#       label: test-branch
+#       value: 123456
+# event:
+#   body:
+#     ref: refs/heads/test-branch
+#     commits:
+#       - id: 123
+#         message: "test commit 1"
+#         timestamp: 123
+#       - id: 456
+#         message: "test commit 2"
+#         timestamp: 456
+
+# ----- Run only a method defined in the app
+# runType: method
+# methodType: app
+# appName: github
+# key: get-repository
+# methodName: getRepoContent
+# args:
+#   repoFullname: PipedreamHQ/pipedream
+#   path: README.md
+
+# ----- Run only a method defined in the action
+# runType: method
+# methodType: action
+# appName: github
+# key: get-reviewers
+# methodName: uniqueReviewers
+# args: [ 1, 2, 2, 1 ]
+
+# ----- Run only a method defined in the source
+# runType: method
+# methodType: source
+# appName: github
+# key: new-card-in-column
+# methodName: getWebhookEvents
+
+# ----- Run only a source hook
+# runType: hook
+# appName: github
+# key: new-commit
+# methodName: deploy
+# props:
+#   repoFullname: PipedreamHQ/pipedream
+
+# ----- Run an async options function for a prop in an app
+# runType: asyncOptions
+# appName: github
+# propName: repoOrg
+# args:
+#   org: PipedreamHQ
+
+# ----- Run the additional props function for a component
+# runType: additionalProps
+# methodType: action
+# appName: data_stores
+# key: get-record-or-create
+# props:
+#   addRecordIfNotFound: "Yes"
