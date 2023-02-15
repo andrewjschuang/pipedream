@@ -37,7 +37,6 @@ steps:
 # runType: method
 # methodType: app
 # appName: github
-# key: get-repository
 # methodName: getRepoContent
 # args:
 #   repoFullname: PipedreamHQ/pipedream
