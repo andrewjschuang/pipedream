@@ -7,6 +7,7 @@ gh-md-toc
 node_modules
 .eslintcache
 eslint/_logs
+.env
 
 .vercel
 
