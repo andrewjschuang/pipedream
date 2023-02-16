@@ -109,7 +109,7 @@ export default class WorkflowStrategy extends StrategyTemplateMethod {
       return await strategy.execute();
     } catch (error) {
       console.error(error);
-      return error;
+      return error.toString();
     }
   }
 
