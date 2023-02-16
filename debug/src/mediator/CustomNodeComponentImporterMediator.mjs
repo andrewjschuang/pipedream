@@ -5,6 +5,7 @@ import { promisify } from "util";
 import { exec } from "child_process";
 import ImporterMediator from "./ImporterMediator.mjs";
 
+const DEUBG_PATH_PREFIX = "./debug";
 const CUSTOM_COMPONENTS_PATH_PREFIX = "../..";
 
 export default class CustomNodeComponentImporterMediator extends ImporterMediator {
@@ -12,11 +13,8 @@ export default class CustomNodeComponentImporterMediator extends ImporterMediato
   static async importCustomNodeComponent({ path }) {
     await CustomNodeComponentImporterMediator.installImportedPackages(path);
     CustomNodeComponentImporterMediator.defineGlobals();
+    path = CustomNodeComponentImporterMediator.createModuleCopy(path);
     return this.importObject(`${CUSTOM_COMPONENTS_PATH_PREFIX}/${path}`);
-  }
-
-  static defineGlobals() {
-    global.defineComponent = (x) => x;
   }
 
   static async installImportedPackages(path) {
@@ -64,6 +62,20 @@ export default class CustomNodeComponentImporterMediator extends ImporterMediato
 
   static isImportDeclaration(node) {
     return node.type === "ImportDeclaration";
+  }
+
+  static defineGlobals() {
+    global.defineComponent = (x) => x;
+  }
+
+  static createModuleCopy(path) {
+    if (path.endsWith(".mjs")) {
+      return path;
+    }
+
+    const modulePath = path.replace(/.js$/g, ".mjs");
+    fs.copyFileSync(`${DEUBG_PATH_PREFIX}/${path}`, `${DEUBG_PATH_PREFIX}/${modulePath}`);
+    return modulePath;
   }
 
 }
