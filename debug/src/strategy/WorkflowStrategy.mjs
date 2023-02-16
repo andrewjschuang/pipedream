@@ -11,7 +11,7 @@ export default class WorkflowStrategy extends StrategyTemplateMethod {
 
   constructor(config) {
     super(config);
-    this.results = {};
+    this.results = config.steps || {};
   }
 
   async execute() {
@@ -108,6 +108,7 @@ export default class WorkflowStrategy extends StrategyTemplateMethod {
     try {
       return await strategy.execute();
     } catch (error) {
+      console.error(error);
       return error;
     }
   }
