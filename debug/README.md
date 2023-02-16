@@ -227,3 +227,8 @@ TODO:
 - Launch point
 - Diagram
 - Description of each layer
+
+### Current Limitations
+
+- Cannot run specific component versions from the global registry, uses latest only
+- Does not support Python steps and other languages other than Node.js
