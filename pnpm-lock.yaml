@@ -14,15 +14,19 @@ importers:
       '@typescript-eslint/eslint-plugin': ^5.27.1
       '@typescript-eslint/parser': ^5.21.0
       crypto: ^1.0.1
+      dotenv: ^16.0.3
+      escodegen: ^2.0.0
       eslint: 8.15.0
       eslint-plugin-jest: ^26.5.3
       eslint-plugin-jsonc: ^1.6.0
       eslint-plugin-pipedream: 0.2.4
       eslint-plugin-putout: ^15.1.1
+      esprima: ^4.0.1
       graphql: 14 - 16
       graphql-request: ^3.7.0
       husky: ^7.0.4
       jest: ^27.5.1
+      js-yaml: ^4.1.0
       lint-staged: ^12.3.4
       pnpm: ^7.22.0
       putout: '>=20'
@@ -47,15 +51,19 @@ importers:
       '@types/jest': 27.5.2
       '@typescript-eslint/eslint-plugin': 5.30.7_j3fwdls2rzb3mq7xmqckumqsle
       '@typescript-eslint/parser': 5.30.7_4hx5bygx4rxgd7xwyndf6ymwce
+      dotenv: 16.0.3
+      escodegen: 2.0.0
       eslint: 8.15.0
       eslint-plugin-jest: 26.6.0_4q2sl75avrxeane5kbbvcujq4q
       eslint-plugin-jsonc: 1.7.0_eslint@8.15.0
       eslint-plugin-pipedream: 0.2.4
       eslint-plugin-putout: 15.8.1_auorfagi5cs7nc5q4ygxqye3y4
+      esprima: 4.0.1
       graphql: 16.5.0
       graphql-request: 3.7.0_graphql@16.5.0
       husky: 7.0.4
       jest: 27.5.1
+      js-yaml: 4.1.0
       lint-staged: 12.5.0
       pnpm: 7.22.0
       putout: 26.24.0
@@ -14266,6 +14274,11 @@ packages:
       is-obj: 2.0.0
     dev: false
 
+  /dotenv/16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+    dev: true
+
   /dotenv/8.6.0:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
     engines: {node: '>=10'}
@@ -18004,6 +18017,7 @@ packages:
 
   /js-yaml/3.14.1:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
+    hasBin: true
     dependencies:
       argparse: 1.0.10
       esprima: 4.0.1
