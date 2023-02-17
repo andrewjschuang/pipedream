@@ -4,6 +4,15 @@ Debug your Pipedream Workflow locally or inside a Docker container!
 
 **Note**: all local paths mentioned in this README considers `debug/` is used as the prefix unless specified otherwise.
 
+## TLDR
+
+Don't worry, you don't need to read everything to be able to start. The only required section is [API Keys](#API-Keys).
+We added example configuration files so after configuring the API Keys, you can run with:
+
+```bash
+node debug/src/launch.mjs
+```
+
 ## Table of Contents
 
 - [API Keys](#API-Keys)
