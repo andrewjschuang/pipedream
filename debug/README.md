@@ -223,6 +223,12 @@ Note that any code changes and execution will be inside the Docker container and
 
 ### Architecture
 
+<p align="center">
+  <br />
+  <img src="./architecture-diagram.jpg" width="1200px" alt="Architecture Diagram" >
+  <br />
+</p>
+
 TODO:
 - Launch point
 - Diagram
