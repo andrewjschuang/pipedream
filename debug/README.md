@@ -6,13 +6,13 @@ Debug your Pipedream Workflow locally or inside a Docker container!
 
 ## Table of Contents
 
-- [API Keys](#api-keys)
-- [Debug Options Config](#debug-options-config)
-- [Workflow Config](#workflow-config)
-- [Docker](#docker)
-- [VSCode Debugging](#vscode-debugging)
-- [Architecture](#architecture)
-- [Current Limitations](#current-limitations)
+- [API Keys](#API-Keys)
+- [Debug Options Config](#Debug-Options-Config)
+- [Workflow Config](#Workflow-Config)
+- [Docker](#Docker)
+- [VSCode Debugging](#VSCode-Debugging)
+- [Architecture](#Architecture)
+- [Current Limitations](#Current-Limitations)
 
 ### API Keys
 
@@ -55,7 +55,7 @@ These are the `runType` options for debugging:
 
 #### Workflow
 
-The default `runType`. In this mode, a `workflow.yaml` file is required. It should not be manually generated, but rather by the [Pipedream GitHub Integration](#cloning-a-github-workflow). It contains the steps and the configured props for each step. You may add a `debug: false` config for a step that you wish to skip. Otherwise, each action step in the workflow will have its **run** method called, sequentially.
+The default `runType`. In this mode, a `workflow.yaml` file is required. It should not be manually generated, but rather by the [Pipedream GitHub Integration](#Cloning-a-GitHub-Workflow). It contains the steps and the configured props for each step. You may add a `debug: false` config for a step that you wish to skip. Otherwise, each action step in the workflow will have its **run** method called, sequentially.
 
 ```yaml
 runType: workflow               # required
@@ -144,7 +144,7 @@ props:                          # optional, type: object
 
 ### Workflow Config
 
-An example `workflow.yaml` is included with steps and props configured. It is required when specifying the [workflow run type](#workflow). Note that to skip execution of a specific step, add a `debug: false` config in it.
+An example `workflow.yaml` is included with steps and props configured. It is required when specifying the [workflow run type](#Workflow). Note that to skip execution of a specific step, add a `debug: false` config in it.
 
 #### Cloning a GitHub Workflow
 
@@ -167,7 +167,7 @@ cp -r workflow-repo/workflow-folder/* pipedream-repo/debug/
 
 ### Docker
 
-If you wish to manage the debugging inside a Docker container to avoid executing code in your local workstation, you can build an image and run it in a container. You can also use [VSCode to connect to the running container and debug it remotely](#remote-container-debugging).
+If you wish to manage the debugging inside a Docker container to avoid executing code in your local workstation, you can build an image and run it in a container. You can also use [VSCode to connect to the running container and debug it remotely](#Remote-Container-Debugging).
 
 **Note**: Run these commands in the pipedream project root directory.
 
@@ -215,7 +215,7 @@ With VSCode you can either debug locally or remotely, by connecting to a running
 
 #### Remote Container Debugging
 
-1. After [starting a container running in the background](#run-and-leave-it-in-the-background-for-debugging), open VSCode and install the **Microsoft Remote Explorer extension**.
+1. After [starting a container running in the background](#Run-and-leave-it-in-the-background-for-debugging), open VSCode and install the **Microsoft Remote Explorer extension**.
 2. Then go to the **Remote Explorer** tab and you will see a list of containers. Click with the right button and select **Attach to Container**.
 3. With the new instance of VSCode, you can start debugging in it.
 
@@ -229,10 +229,87 @@ Note that any code changes and execution will be inside the Docker container and
   <br />
 </p>
 
-TODO:
-- Launch point
-- Diagram
-- Description of each layer
+#### launch.mjs
+
+It is the entry point. It starts by creating the debug configuration.
+
+#### Debug Config and Validator
+
+The **DebugConfig** class loads the configuration options from `debug-options.yaml` and the API keys from `.env`.
+It passes through validation to ensure that the required configurations for each `runType` are correctly defined.
+
+#### StrategyFactory
+
+This is where the specified [Strategy](https://refactoring.guru/design-patterns/strategy) is selected and created according to [DebugConfig](#Debug-Config-and-Validator).
+All strategies implement two basic methods: `setup` and `execute`.
+
+#### Setup and Strategy Template Method
+
+Setup is a [Template Method](https://refactoring.guru/design-patterns/template-method) defined in **StrategyTemplateMethod** and is always called before execute. The strategy subclasses may override the implementation of specific steps inside the structure of the algorithm.
+
+There are 3 main steps in the setup process:
+
+1. It imports the app and/or component files or any other file that will be required with [ImporterMediator](#Importer-Mediator).
+2. It sets up the props with **PropsBuilder** reading the defined values from `debug-options.yaml` or `workflow.yaml` as if they were configured in the Web UI.
+3. It loads the API keys from the `.env` file and injects them in the app.
+
+Each strategy may need to override subtle changes in each of these steps.
+
+#### Importer Mediator
+
+This class imports the app and/or the component.
+
+#### Custom Node Component Importer Mediator
+
+This class imports a custom component, along with any other file that is required. It also installs all `npm` dependencies required by the custom component and runs a few steps to be able to execute the `run` method. It is a subclass of [Importer Mediator](#Importer-Mediator).
+
+#### Workflow Strategy and Workflow Step Validator
+
+This strategy reads a `workflow.yaml` file and executes step by step, in order, saving the results so they can be accessed in subsequent steps. For each step, it will build either a [CustomNodeStrategy](#Custom-Node-Strategy), [DataStoresStrategy](#Data-Stores-Strategy), or [ActionStrategy](#Action-Strategy).
+
+#### Action Strategy
+
+This strategy runs a [Action Component](https://pipedream.com/docs/workflows/steps/actions/#actions), injecting Pipedream's [$. built-in functions](https://pipedream.com/docs/workflows/built-in-functions/#built-in-functions).
+
+#### Custom Node Strategy
+
+This strategy runs [Custom Node.js Components](https://pipedream.com/docs/code/nodejs/#how-pipedream-node-js-components-work). It is a subclass of [ActionStrategy](#Action-Strategy).
+
+#### Data Stores Strategy
+
+This strategy simulates a [Data Store](https://pipedream.com/docs/data-stores/#data-stores) in Pipedream. It is a subclass of [ActionStrategy](#Action-Strategy).
+
+#### Source Strategy
+
+This strategy runs a [Source Component](https://pipedream.com/docs/workflows/steps/triggers/#app-based-triggers), passing in an `event` object, if defined in the configuration.
+
+#### Hook Method Strategy
+
+This strategy runs a [Source Hook](https://pipedream.com/docs/components/api/#hooks). It is useful for testing a `deploy` method, for example. It is a subclass of [Source Strategy](#Source-Strategy).
+
+#### Method Strategy
+
+This strategy runs a method defined inside an [App](#App-Method-Strategy) or [Component](#Component-Method-Strategy).
+
+#### Component Method Strategy
+
+This strategy runs a method defined inside a component. It configures the props and arguments that are passed to the method. It is a subclass of [Method Strategy](#Method-Strategy).
+
+#### App Method Strategy
+
+This strategy runs a method defined inside an app file. There are no props to be configured, only arguments to be passed to the method. It is a subclass of [Method Strategy](#Method-Strategy).
+
+#### Async Options Strategy
+
+This strategy runs the [Async Options](https://pipedream.com/docs/components/guidelines/#async-options) function for a selected prop. Be sure to pass the required arguments and previously configured prop values as if it were running in Pipedream. It is a subclass of [App Method Strategy](#Method-Strategy).
+
+#### Additional Props Strategy
+
+This strategy runs the [Additional Props](https://pipedream.com/docs/components/api/#dynamic-props) function in a component. It configures the props.
+
+#### Execute
+
+This is the final step of a strategy. It ends in a result or error.
 
 ### Current Limitations
 
