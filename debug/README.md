@@ -33,7 +33,7 @@ Each line should have the following structure:
 ${APP_NAME}=${API_KEY}
 ```
 
-**Note**: The `APP_NAME` should be the app's `name_slug` in uppercase.
+**Note**: The `APP_NAME` should be the app's **name_slug**** in uppercase.
 
 For example:
 
@@ -51,7 +51,7 @@ These are the following options:
 
   - `runType`: defines which debugging type is to be executed, whether **workflow**, **action**, **hook**, etc. More details below.
   - `steps`: used to pass a value or an object that would be returned by the trigger in a workflow run, as if the source had emitted the event. This object will be populated with the result of each step in the workflow to be executed.
-  - `appName`: the name of the app imported by the component. Note that it is **not always** the `name_slug` defined in the app file, but rather the name that is being used when being imported in the component. For example, the Google Sheets app `name_slug` is **google_sheets**, but in most components it is being imported with the name **googleSheets**.
+  - `appName`: the name of the app imported by the component. It is the app **name_slug**.
   - `key`: the component key. Does not include the app name.
   - `methodType`: whether the method to be executed is contained in the **app**, **action**, or **source** component.
   - `methodName`: the name of the method to be executed.
