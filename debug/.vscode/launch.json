@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Pipedream Workflow",
+            "request": "launch",
+            "type": "node",
+            "program": "/opt/pipedream/debug/src/launch.mjs"
+        }
+    ]
+}

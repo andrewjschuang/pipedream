@@ -1,0 +1,46 @@
+schema: workflow/2022.04
+name: Test
+triggers:
+- id: hi_NGZAinJ
+steps:
+- namespace: get_record_or_create
+  runtime: nodejs14.x
+  uses: data_stores-get-record-or-create@0.0.8
+  _props_cursor: dyp_m1MKf6o
+  props:
+    app:
+    dataStore:
+      storeId: ds_YquBU2
+    key: pipedream-repo
+    value: PipedreamHQ/pipedream
+    addRecordIfNotFound: "Yes"
+  debug: true
+- namespace: get_repository
+  runtime: nodejs14.x
+  uses: github-get-repository@0.0.7
+  props:
+    github:
+      authProvisionId: apn_olhFz74
+    repoFullname: "{{steps.get_record_or_create.$return_value}}"
+  debug: true
+- namespace: workflow_delay
+  runtime: nodejs14.x
+  uses: delay-workflow-delay@0.0.1
+  props:
+    delay:
+    delayDurationValue: 2
+    delayDurationUnit: Seconds
+  debug: true
+- namespace: end_based_on_condition
+  runtime: nodejs14.x
+  uses: filter-end-based-on-condition@0.0.1
+  _props_cursor: dyp_DXOFXr8r
+  props:
+    filter:
+    messageOnContinue: "Continuing..."
+    messageOnEnd: "Ending..."
+    initialValue: PipedreamHQ/pipedream
+    condition: TEXT_EQUALS
+    secondValue: pipedreamhq/pipedream
+    caseSensitive: false
+  debug: true
