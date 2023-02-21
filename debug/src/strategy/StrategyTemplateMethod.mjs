@@ -22,9 +22,10 @@ export default class StrategyTemplateMethod {
     const appBase = importedApp?.appBase || importedComponent?.appBase;
     const componentBase = importedComponent?.componentBase || importedComponent;
 
+    this.setupProps(componentBase, configuredProps);
+
     this.setupDB(componentBase);
     this.setupEmitter(componentBase);
-    this.setupProps(componentBase, configuredProps);
 
     const auth = this.buildAuth(appName, auths);
     const app = this.injectAppAuth(appBase, auth);

@@ -23,19 +23,17 @@ function initialize(props, defaultValue) {
 }
 
 function setProps(props, configuredProps) {
-  for (const k in configuredProps) {
+  for (const k in props) {
     const configuredProp = configuredProps[k];
     let prop = props[k];
 
-    if (!prop) {
-      props[k] = configuredProp.value;
-    } else if (prop.withLabel) {
+    if (prop.withLabel) {
       props[k] = {
         label: configuredProp.label,
         value: configuredProp.value,
       };
     } else {
-      props[k] = configuredProp.value;
+      props[k] = configuredProp?.value;
     }
   }
 }
