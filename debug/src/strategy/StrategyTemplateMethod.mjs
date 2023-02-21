@@ -52,9 +52,12 @@ export default class StrategyTemplateMethod {
     const db = {};
     component.props.db = {
       get(k) {
-        return db[k];
+        const v = db[k];
+        console.log(`db[${k}] -> ${v}`);
+        return v;
       },
       set(k, v) {
+        console.log(`db[${k}] <- ${v}`);
         db[k] = v;
       },
     };
